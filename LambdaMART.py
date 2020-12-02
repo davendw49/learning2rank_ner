@@ -138,7 +138,7 @@ class LambdaMART:
         self.lr = lr
         self.trees = []
 
-    def fit(self):
+    def fit(self, topk):
         """
         train the model to fit the train dataset
         """
@@ -179,12 +179,12 @@ class LambdaMART:
 
                 # calculate the predicted NDCG
                 true_label = self.training_data[qid_doc_map[qid], 0]
-                topk = len(true_label)
+                # topk = len(true_label)
                 pred_sort_index = np.argsort(sub_pred_score)[::-1]
                 true_label = true_label[pred_sort_index]
                 ndcg_val = ndcg_k(true_label, topk)
                 ndcg_list.append(ndcg_val)
-            print('Epoch:{}, Average NDCG : {}'.format(k, np.nanmean(ndcg_list)))
+            print('Epoch:{}, Average NDCG@{} : {}'.format(k, topk, np.nanmean(ndcg_list)))
 
     def predict(self, data):
         """

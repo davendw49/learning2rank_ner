@@ -157,9 +157,9 @@ class Net(nn.Module):
     def __init__(self, n_feature, h1_units, h2_units):
         super(Net, self).__init__()
         self.h1 = nn.Linear(n_feature, h1_units)
-
+        nn.BatchNorm1d(h1_units)
         self.h2 = nn.Linear(h1_units, h2_units)
-
+        nn.BatchNorm1d(h2_units)
         self.out = nn.Linear(h2_units, 1)
 
     def forward(self, x):
@@ -187,7 +187,7 @@ class LambdaRank:
         for para in self.model.parameters():
             print(para[0])
 
-    def fit(self):
+    def fit(self, k):
         """
         train the model to fit the train dataset
         """
@@ -235,12 +235,12 @@ class LambdaRank:
 
                     # calculate the predicted NDCG
                     true_label = self.training_data[qid_doc_map[qid], 0]
-                    k = len(true_label)
+                    # k = len(true_label)
                     pred_sort_index = np.argsort(sub_pred_score)[::-1]
                     true_label = true_label[pred_sort_index]
                     ndcg_val = ndcg_k(true_label, k)
                     ndcg_list.append(ndcg_val)
-                print('Epoch:{}, Average NDCG : {}'.format(i, np.nanmean(ndcg_list)))
+                print('Epoch:{}, Average NDCG@{} : {}'.format(i, k, np.nanmean(ndcg_list)))
 
 
     def predict(self, data):
@@ -275,7 +275,7 @@ class LambdaRank:
 
             # calculate the predicted NDCG
             true_label = data[qid_doc_map[qid], 0]
-            k = len(true_label)
+            # k = len(true_label)
             pred_sort_index = np.argsort(sub_pred_score)[::-1]
             true_label = true_label[pred_sort_index]
             ndcg_val = ndcg_k(true_label, k)
