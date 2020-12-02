@@ -156,17 +156,21 @@ def load_data(file_path='/Users/hou/OneDrive/KDD2019/data/L2R/sample.txt'):
 class Net(nn.Module):
     def __init__(self, n_feature, h1_units, h2_units):
         super(Net, self).__init__()
+        self.bn0 = nn.BatchNorm1d(n_feature)
         self.h1 = nn.Linear(n_feature, h1_units)
-        nn.BatchNorm1d(h1_units)
+        self.bn1 = nn.BatchNorm1d(h1_units)
         self.h2 = nn.Linear(h1_units, h2_units)
-        nn.BatchNorm1d(h2_units)
+        self.bn2 = nn.BatchNorm1d(h2_units)
         self.out = nn.Linear(h2_units, 1)
 
     def forward(self, x):
+        #x = self.bn0(x)
         x = self.h1(x)
         x = F.relu(x)
+        #x = self.bn1(x)
         x = self.h2(x)
         x = F.relu(x)
+        #x = self.bn2(x)
         x = self.out(x)
         return x
 
