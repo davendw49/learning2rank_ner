@@ -26,3 +26,7 @@ store in `train.npy` and `test.npy`. Used `np.load()` to import dataset.
 
 The first column is `label`, the second column is `qid`, and the following columns are features (total 6 features).
 
+## REFERENCE
+
+- [L2R](https://github.com/houchenyu/L2R)
+- [PTRanking](https://github.com/wildltr/ptranking)
