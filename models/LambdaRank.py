@@ -1,12 +1,13 @@
 from .utils import *
 from .Net import Net
 from . import BaseModel
+from torch.utils.data import DataLoader
 
 
 class LambdaRank(BaseModel):
 
     def __init__(self, training_data, n_feature, h1_units, h2_units, epoch, lr=0.001, number_of_trees=10, plot=True):
-        self.training_data = np.load(training_data)
+        self.training_data = training_data
         self.n_feature = n_feature
         self.h1_units = h1_units
         self.h2_units = h2_units
@@ -19,7 +20,7 @@ class LambdaRank(BaseModel):
         for para in self.model.parameters():
             print(para[0])
 
-    def fit(self, k):
+    def fit(self, k, ndcg3_list):
         """
         train the model to fit the train dataset
         """
@@ -73,6 +74,7 @@ class LambdaRank(BaseModel):
                     ndcg_val = ndcg_k(true_label, k)
                     ndcg_list.append(ndcg_val)
                 print('Epoch:{}, Average NDCG@{} : {}'.format(i, k, np.nanmean(ndcg_list)))
+                ndcg3_list.append((i,np.nanmean(ndcg_list)))
 
     def predict(self, data):
         """
@@ -80,7 +82,7 @@ class LambdaRank(BaseModel):
         :param data: given testset
         :return:
         """
-        data = np.load(data)
+        #data = np.load(data)
         qid_doc_map = group_by(data, 1)
         predicted_scores = np.zeros(len(data))
         for qid in qid_doc_map.keys():
@@ -97,7 +99,7 @@ class LambdaRank(BaseModel):
         :param k: used to compute the NDCG@k
         :return:
         """
-        data = np.load(data)
+        #data = np.load(data)
         qid_doc_map = group_by(data, 1)
         ndcg_list = []
         predicted_scores = np.zeros(len(data))

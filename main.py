@@ -6,7 +6,7 @@ if __name__ == '__main__':
 
     arg_parser.add_argument('-b', '--model', default='LambdaRank', help='Backend to use. (Default: grobid)')
     arg_parser.add_argument('-t', '--train', default='./train.npy', help='Training data store in .npy')
-    arg_parser.add_argument('-n', '--test', default='./train.npy', help='Testing data store in .npy')
+    arg_parser.add_argument('-n', '--test', default='./test.npy', help='Testing data store in .npy')
 
     arg_parser.add_argument('-k', '--topk', default=3, help='NDCG@k for ranking test')
 
