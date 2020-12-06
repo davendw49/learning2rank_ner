@@ -11,9 +11,10 @@ benchmark = np.load('./benchmark.npy')
 n_feature = 6
 h1_units = 512
 h2_units = 256
-epoch = 1000
+epoch = 2
 lr = 0.0001
 nt = 20
+k = 1
 
 def process_StandardScal(x):
     standard_scaler = preprocessing.StandardScaler().fit(x)
@@ -81,15 +82,19 @@ benchmark = np.hstack((benchmark[:,:3],x_benchmark))
 ndcg_record = {}
 
 rank = Rank(rank_model=model, training_data=train, n_feature=n_feature, h1_units=h1_units, h2_units=h2_units, epoch=epoch, lr=lr, number_of_trees=nt)
-rank.handler.fit(3, ndcg_record)
+rank.handler.fit(k, ndcg_record)
 with open('ndcg_record.json','w')as f:
     ujson.dump(ndcg_record,f)
-plot(ndcg_record)
-test_pred_result = rank.handler.predict(test,3)
+
+
+test_pred_result = rank.handler.predict(test,k)
+print(test_pred_result)
 test_true_result = test[:, [2, 0]].astype(np.int32).tolist()
 test_evaluate = evaluate(test_pred_result,test_true_result)
 print("test evaluate: ",test_evaluate)
-benchmark_pred_result = rank.handler.predict(benchmark,3)
+
+
+benchmark_pred_result = rank.handler.predict(benchmark,k)
 benchmark_true_result = benchmark[:,[2,0]].astype(np.int32).tolist()
 benchmark_evaluate = evaluate(benchmark_pred_result,benchmark_true_result)
 print("benchmark evaluate: ",benchmark_evaluate)

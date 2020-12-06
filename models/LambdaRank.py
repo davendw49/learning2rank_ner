@@ -76,7 +76,7 @@ class LambdaRank(BaseModel):
                 print('Epoch:{}, Average NDCG@{} : {}'.format(i, k, np.nanmean(ndcg_list)))
                 ndcg_record[i] = np.nanmean(ndcg_list)
 
-                #torch.save(self.model,'model.pkl')
+                torch.save(self.model,'model.pkl')
 
     def predict(self, data, k):
         """
