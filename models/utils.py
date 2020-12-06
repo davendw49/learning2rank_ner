@@ -81,8 +81,8 @@ def group_by(data, qid_index):
     qid_doc_map = {}
     idx = 0
     for record in data:
-        qid_doc_map.setdefault(record[qid_index], [])
-        qid_doc_map[record[qid_index]].append(idx)
+        qid_doc_map.setdefault(int(record[qid_index]), [])
+        qid_doc_map[int(record[qid_index])].append(idx)
         idx += 1
     return qid_doc_map
 

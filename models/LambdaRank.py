@@ -20,7 +20,7 @@ class LambdaRank(BaseModel):
         for para in self.model.parameters():
             print(para[0])
 
-    def fit(self, k, ndcg3_list):
+    def fit(self, k, ndcg_record):
         """
         train the model to fit the train dataset
         """
@@ -36,7 +36,7 @@ class LambdaRank(BaseModel):
         sample_num = len(self.training_data)
         print('Training .....\n')
         for i in range(self.epoch):
-            predicted_scores = self.model(torch.from_numpy(self.training_data[:, 2:].astype(np.float32)))
+            predicted_scores = self.model(torch.from_numpy(self.training_data[:, 3:].astype(np.float32)))
             predicted_scores_numpy = predicted_scores.data.numpy()
             lambdas = np.zeros(sample_num)
             # w = np.zeros(sample_num)
@@ -63,7 +63,7 @@ class LambdaRank(BaseModel):
                 for qid in qid_doc_map.keys():
                     subset = qid_doc_map[qid]
 
-                    X_subset = torch.from_numpy(self.training_data[subset, 2:].astype(np.float32))
+                    X_subset = torch.from_numpy(self.training_data[subset, 3:].astype(np.float32))
                     sub_pred_score = self.model(X_subset).data.numpy().reshape(1, len(X_subset)).squeeze()
 
                     # calculate the predicted NDCG
@@ -74,23 +74,29 @@ class LambdaRank(BaseModel):
                     ndcg_val = ndcg_k(true_label, k)
                     ndcg_list.append(ndcg_val)
                 print('Epoch:{}, Average NDCG@{} : {}'.format(i, k, np.nanmean(ndcg_list)))
-                ndcg3_list.append((i,np.nanmean(ndcg_list)))
+                ndcg_record[i] = np.nanmean(ndcg_list)
 
-    def predict(self, data):
+                #torch.save(self.model,'model.pkl')
+
+    def predict(self, data, k):
         """
         predict the score for each document in testset
         :param data: given testset
         :return:
         """
         #data = np.load(data)
+        qid_top3_dict = {}
         qid_doc_map = group_by(data, 1)
         predicted_scores = np.zeros(len(data))
         for qid in qid_doc_map.keys():
             subset = qid_doc_map[qid]
-            X_subset = torch.from_numpy(data[subset, 2:].astype(np.float32))
-            sub_pred_score = self.model(X_subset).data.numpy().reshape(1, len(X_subset)).squeeze()
+            X_subset = torch.from_numpy(data[subset, 3:].astype(np.float32))
+            sub_pred_score = self.model(X_subset).data.numpy().reshape(1,len(X_subset)).flatten()
+            sub_ae_id  = data[subset,2]
+            sub_ae_pre_score = [(int(x[0]),x[1]) for x in zip(sub_ae_id,sub_pred_score)]
+            qid_top3_dict[qid] = sorted(sub_ae_pre_score,key=lambda x:x[1])[::-1][:k]
             predicted_scores[qid_doc_map[qid]] = sub_pred_score
-        return predicted_scores
+        return qid_top3_dict
 
     def validate(self, data, k):
         """
@@ -105,7 +111,7 @@ class LambdaRank(BaseModel):
         predicted_scores = np.zeros(len(data))
         for qid in qid_doc_map.keys():
             subset = qid_doc_map[qid]
-            X_subset = torch.from_numpy(data[subset, 2:].astype(np.float32))
+            X_subset = torch.from_numpy(data[subset, 3:].astype(np.float32))
             sub_pred_score = self.model(X_subset).data.numpy().reshape(1, len(X_subset)).squeeze()
 
             # calculate the predicted NDCG
