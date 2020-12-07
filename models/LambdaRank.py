@@ -76,7 +76,7 @@ class LambdaRank(BaseModel):
                 print('Epoch:{}, Average NDCG@{} : {}'.format(i, k, np.nanmean(ndcg_list)))
                 ndcg_record[i] = np.nanmean(ndcg_list)
 
-                torch.save(self.model,'model.pkl')
+                torch.save(self.model.state_dict() ,'model.pth')
 
     def predict(self, data, k):
         """
@@ -96,7 +96,7 @@ class LambdaRank(BaseModel):
             sub_ae_pre_score = [(int(x[0]),x[1]) for x in zip(sub_ae_id,sub_pred_score)]
             qid_top3_dict[qid] = sorted(sub_ae_pre_score,key=lambda x:x[1])[::-1][:k]
             predicted_scores[qid_doc_map[qid]] = sub_pred_score
-        return qid_top3_dict
+        return qid_top3_dict, predicted_scores
 
     def validate(self, data, k):
         """

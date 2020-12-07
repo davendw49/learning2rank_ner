@@ -59,6 +59,7 @@ def factor(pred_data,true_data):
     precision = tp / (tp + fp)
     recall = tp / (tp + fn)
     f1_score = 2 * precision * recall / (precision + recall)
+    
     return precision, recall, f1_score
 
 def plot(ndcg_record):
