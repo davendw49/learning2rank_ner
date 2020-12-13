@@ -84,8 +84,6 @@ ndcg_record = {}
 
 rank = Rank(rank_model=model, training_data=train, n_feature=n_feature, h1_units=h1_units, h2_units=h2_units, epoch=epoch, lr=lr, number_of_trees=nt)
 rank.handler.fit(k, ndcg_record)
-with open('ndcg_record.json','w')as f:
-    ujson.dump(ndcg_record,f)
 
 
 test_pred_result = rank.handler.predict(test,k)
