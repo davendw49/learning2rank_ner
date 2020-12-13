@@ -96,7 +96,11 @@ class LambdaRank(BaseModel):
             sub_ae_pre_score = [(int(x[0]),x[1]) for x in zip(sub_ae_id,sub_pred_score)]
             qid_top3_dict[qid] = sorted(sub_ae_pre_score,key=lambda x:x[1])[::-1][:k]
             predicted_scores[qid_doc_map[qid]] = sub_pred_score
-        return qid_top3_dict, predicted_scores
+        predicted_scores_aeid= {}
+        data_ae_id = data[:,2]
+        for i in range(0,len(predicted_scores)):
+            predicted_scores_aeid[int(data_ae_id[i])] = predicted_scores[i]
+        return qid_top3_dict, predicted_scores, predicted_scores_aeid
 
     def validate(self, data, k):
         """
