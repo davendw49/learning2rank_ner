@@ -2,6 +2,8 @@ from .utils import *
 
 from . import BaseModel
 
+from tqdm import tqdm
+
 
 class LambdaMART(BaseModel):
 
@@ -59,7 +61,9 @@ class LambdaMART(BaseModel):
                 ndcg_list.append(ndcg_val)
             print('Epoch:{}, Average NDCG@{} : {}'.format(k, topk, np.nanmean(ndcg_list)))
 
-    def predict(self, data):
+        torch.save(self.model.state_dict() ,'model.pth')
+
+    def predict(self, data, k=0):
         """
         predict the score for each document in testset
         :param data: given testset
@@ -68,12 +72,16 @@ class LambdaMART(BaseModel):
         data = np.load(data)
         qid_doc_map = group_by(data, 1)
         predicted_scores = np.zeros(len(data))
-        for qid in qid_doc_map.keys():
+        for qid in tqdm(qid_doc_map.keys()):
             sub_result = np.zeros(len(qid_doc_map[qid]))
             for tree in self.trees:
                 sub_result += self.lr * tree.predict(data[qid_doc_map[qid], 2:])
             predicted_scores[qid_doc_map[qid]] = sub_result
-        return predicted_scores
+        predicted_scores_aeid= {}
+        data_ae_id = data[:,2]
+        for i in range(0,len(predicted_scores)):
+            predicted_scores_aeid[int(data_ae_id[i])] = predicted_scores[i]
+        return predicted_scores, predicted_scores_aeid
 
     def validate(self, data, k):
         """

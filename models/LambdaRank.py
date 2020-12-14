@@ -2,7 +2,7 @@ from .utils import *
 from .Net import Net
 from . import BaseModel
 from torch.utils.data import DataLoader
-
+from tqdm import tqdm
 
 class LambdaRank(BaseModel):
 
@@ -20,7 +20,7 @@ class LambdaRank(BaseModel):
         for para in self.model.parameters():
             print(para[0])
 
-    def fit(self, k, ndcg_record):
+    def fit(self, k):
         """
         train the model to fit the train dataset
         """
@@ -74,9 +74,8 @@ class LambdaRank(BaseModel):
                     ndcg_val = ndcg_k(true_label, k)
                     ndcg_list.append(ndcg_val)
                 print('Epoch:{}, Average NDCG@{} : {}'.format(i, k, np.nanmean(ndcg_list)))
-                ndcg_record[i] = np.nanmean(ndcg_list)
 
-                torch.save(self.model.state_dict() ,'model.pth')
+        torch.save(self.model.state_dict() ,'model.pth')
 
     def predict(self, data, k):
         """
@@ -88,7 +87,7 @@ class LambdaRank(BaseModel):
         qid_top3_dict = {}
         qid_doc_map = group_by(data, 1)
         predicted_scores = np.zeros(len(data))
-        for qid in qid_doc_map.keys():
+        for qid in tqdm(qid_doc_map.keys()):
             subset = qid_doc_map[qid]
             X_subset = torch.from_numpy(data[subset, 3:].astype(np.float32))
             sub_pred_score = self.model(X_subset).data.numpy().reshape(1,len(X_subset)).flatten()
@@ -100,7 +99,7 @@ class LambdaRank(BaseModel):
         data_ae_id = data[:,2]
         for i in range(0,len(predicted_scores)):
             predicted_scores_aeid[int(data_ae_id[i])] = predicted_scores[i]
-        return qid_top3_dict, predicted_scores, predicted_scores_aeid
+        return predicted_scores, predicted_scores_aeid
 
     def validate(self, data, k):
         """

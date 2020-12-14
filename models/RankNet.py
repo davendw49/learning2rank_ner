@@ -2,6 +2,10 @@ from .utils import *
 from . import BaseModel
 
 
+from tqdm import tqdm
+import torch
+
+
 class Model(torch.nn.Module):
     """
     construct the RankNet
@@ -115,6 +119,53 @@ class RankNet(BaseModel):
 
         # save model parameters
         torch.save(net.state_dict(), 'parameters.pkl')
+
+    def predict(self, data, k):
+        """
+        compute the average NDCG@k for the given test data.
+        :param test_data: test data
+        :param k: used to compute NDCG@k
+        :return:
+        """
+        data = np.load(data)
+        # load model parameters
+        net = Model(self.n_feature, self.h1_units, self.h2_units)
+        net.load_state_dict(torch.load('parameters.pkl'))
+
+        qid_doc_map = group_by(data, 1)
+        # query_idx = qid_doc_map.keys()
+        ndcg_k_list = []
+        predicted_scores = np.zeros(len(data))
+        qid_top3_dict = {}
+
+        # for q in query_idx:
+        #     true_scores = data[qid_doc_map[q], 0]
+        #     if sum(true_scores) == 0:
+        #         continue
+        #     docs = data[qid_doc_map[q]]
+        #     X_test = docs[:, 2:]
+        #
+        #     pred_scores = [net.predict(torch.Tensor(test_x).data) for test_x in X_test]
+        #     pred_rank = np.argsort(pred_scores)[::-1]
+        #     pred_rank_score = true_scores[pred_rank]
+        #     ndcg_val = ndcg_k(pred_rank_score, k)
+        #     ndcg_k_list.append(ndcg_val)
+        #     predicted_scores[qid_doc_map[q]] = sub_pred_score
+
+        for qid in tqdm(qid_doc_map.keys()):
+            subset = qid_doc_map[qid]
+            X_subset = torch.from_numpy(data[subset, 3:].astype(np.float32))
+            sub_pred_score = [net.predict(torch.Tensor(test_x).data) for test_x in X_test]
+            sub_ae_id = data[subset, 2]
+            sub_ae_pre_score = [(int(x[0]), x[1]) for x in zip(sub_ae_id, sub_pred_score)]
+            qid_top3_dict[qid] = sorted(sub_ae_pre_score, key=lambda x: x[1])[::-1][:k]
+            predicted_scores[qid_doc_map[qid]] = sub_pred_score
+
+        predicted_scores_aeid = {}
+        data_ae_id = data[:, 2]
+        for i in range(0, len(predicted_scores)):
+            predicted_scores_aeid[int(data_ae_id[i])] = predicted_scores[i]
+        return predicted_scores, predicted_scores_aeid
 
     def validate(self, data, k):
         """

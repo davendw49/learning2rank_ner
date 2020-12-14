@@ -12,7 +12,7 @@ class BaseModel(object, metaclass=ABCMeta):
         fit the data via training
         """
 
-    def predict(self, data):
+    def predict(self, data, k):
         """
         predict data
         """
